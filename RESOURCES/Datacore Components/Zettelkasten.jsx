@@ -13,13 +13,20 @@ const Zettelkasten = () => {
         .sort(page => [page.$frontmatter.folgezettel], 'asc')
     );
 
-    const filteredPages = dc.useMemo(() => (
-        allPages.filter(page => {
-            if (filter == '') return true;
-            return page.$name.toLowerCase().includes(filter.toLowerCase()) ||
-                page.$frontmatter.folgezettel.value.toLowerCase().includes(filter.toLowerCase());
-        })
-    ), [allPages, filter])
+    // Fixed crash on entering letters/numbers into search if folgezettel property is 'number' type
+    // (that's the theory of why it happened to me)
+    // Also implements searching by folgezettel id as well
+const filteredPages = dc.useMemo(() => (
+    allPages.filter(page => {
+        if (filter == '') return true;
+        const folgezettelValue = page.$frontmatter?.folgezettel?.value;
+        const folgezettelStr = typeof folgezettelValue === 'string' ? folgezettelValue : String(folgezettelValue);
+        return page.$name.toLowerCase().includes(filter.toLowerCase()) ||
+               folgezettelStr.toLowerCase().includes(filter.toLowerCase());
+    })
+), [allPages, filter]);
+
+
 
     const columns = [
         { id: '', value: (page) => page.$frontmatter?.folgezettel.value },
